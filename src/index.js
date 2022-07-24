@@ -28,15 +28,12 @@ const init = (callback) => {
 
   scene.add(camera);
 
-  // const hemispheric = new THREE.HemisphereLight();
-  // scene.add(hemispheric);
-
   const light1 = new THREE.AmbientLight(0xffffff, 0.3);
   light1.name = "ambient_light";
   scene.add(light1);
 
   const light2 = new THREE.DirectionalLight(0xffffff, 0.8 * Math.PI);
-  light2.position.set(0.5, 0, 0.866); // ~60º
+  light2.position.set(0.5, 0, 0.866);
   light2.name = "main_light";
   scene.add(light2);
 
@@ -44,17 +41,16 @@ const init = (callback) => {
     antialias: true,
     logarithmicDepthBuffer: true,
   });
-  // renderer.setClearColor(0xffffff);
+
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-  // renderer.physicallyCorrectLights = true;
   renderer.toneMappingExposure = 0.7;
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  // scene.background = new THREE.Color(0xf0f0f0);
+
   const path = "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
   const format = ".jpg";
   const urls = [
@@ -158,17 +154,5 @@ const convertImageToTexture = (image) =>
     texture.encoding = THREE.sRGBEncoding;
     texture.flipY = false;
   });
-
-// init(() => {
-//   const animate = () => {
-//     requestAnimationFrame(() => {
-//       orbitControls.update();
-//       renderer.render(scene, camera);
-//       animate();
-//     });
-//   };
-
-//   animate();
-// });
 
 init();
