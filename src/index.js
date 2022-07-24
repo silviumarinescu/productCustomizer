@@ -65,7 +65,7 @@ const init = (callback) => {
     path + "pz" + format,
     path + "nz" + format,
   ];
-  const reflectionCube = new THREE.CubeTextureLoader().load( urls );
+  const reflectionCube = new THREE.CubeTextureLoader().load(urls);
   reflectionCube.mapping = THREE.CubeRefractionMapping;
   scene.background = reflectionCube;
 
@@ -80,9 +80,11 @@ const init = (callback) => {
 
   orbitControls = new OrbitControls(camera, renderer.domElement);
 
-  // controls.addEventListener( 'change', render ); remove animation loop
+  orbitControls.addEventListener("change", () => {
+    renderer.render(scene, camera);
+  });
 
-  loader.load(Mug, (gltf) => {
+  loader.load(Mug, async (gltf) => {
     const object = gltf.scene;
     const box = new THREE.Box3().setFromObject(object);
     const sz = box.getSize(new THREE.Vector3());
@@ -103,20 +105,17 @@ const init = (callback) => {
 
     camera.position.copy(center);
     camera.position.y += size / 2 + camera.position.y;
-    orbitControls.target = new THREE.Vector3(
-      center.x,
-     sz.y / 2,
-      center.z
-    );
+    orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
 
     camera.updateProjectionMatrix();
 
+    let imageTexture = await convertImageToTexture(Image3);
     object.traverse((obj) => {
       if (obj instanceof THREE.Mesh && obj.name === "Mug_Porcelain_PBR001_0") {
         material = obj.material;
         mesh = obj;
 
-        material.map = convertImageToTexture(Image3);
+        material.map = imageTexture;
       } else if (
         obj instanceof THREE.Mesh &&
         obj.name === "Mug_Porcelain_PBR002_0"
@@ -131,7 +130,9 @@ const init = (callback) => {
     scene.add(object);
 
     onWindowResize();
-    callback();
+    orbitControls.update();
+    renderer.render(scene, camera);
+    if (callback) callback();
   });
 };
 
@@ -142,27 +143,32 @@ const onWindowResize = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
-const convertImageToTexture = (image) => {
-  const textureLoader = new THREE.TextureLoader();
-  let texture = textureLoader.load(image);
-  texture.encoding = THREE.sRGBEncoding;
-  texture.flipY = false;
-  // texture.repeat.x = 1;
-  // console.log("offset", texture.offset);
-  // console.log("wrapS", texture.wrapS);
-  // console.log("wrapT", texture.wrapT);
+const convertImageToTexture = (image) =>
+  new Promise((a) => {
+    let texture = null;
 
-  return texture;
-};
+    var onLoad = function () {
+      a(texture);
+    };
 
-init(() => {
-  const animate = () => {
-    requestAnimationFrame(() => {
-      orbitControls.update();
-      renderer.render(scene, camera);
-      animate();
-    });
-  };
+    var manager = new THREE.LoadingManager(onLoad);
 
-  animate();
-});
+    const textureLoader = new THREE.TextureLoader(manager);
+    texture = textureLoader.load(image);
+    texture.encoding = THREE.sRGBEncoding;
+    texture.flipY = false;
+  });
+
+// init(() => {
+//   const animate = () => {
+//     requestAnimationFrame(() => {
+//       orbitControls.update();
+//       renderer.render(scene, camera);
+//       animate();
+//     });
+//   };
+
+//   animate();
+// });
+
+init();
