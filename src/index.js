@@ -19,11 +19,12 @@ var material;
 const init = (callback) => {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(
-    20,
-    container.offsetWidth / container.offsetHeight,
-    1e-5,
-    1e10
+    50,
+    window.innerWidth / window.innerHeight,
+    1,
+    5000
   );
+  camera.position.z = 2000;
 
   scene.add(camera);
 
@@ -54,6 +55,20 @@ const init = (callback) => {
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   // scene.background = new THREE.Color(0xf0f0f0);
+  const path = "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
+  const format = ".jpg";
+  const urls = [
+    path + "px" + format,
+    path + "nx" + format,
+    path + "py" + format,
+    path + "ny" + format,
+    path + "pz" + format,
+    path + "nz" + format,
+  ];
+  const reflectionCube = new THREE.CubeTextureLoader().load( urls );
+  reflectionCube.mapping = THREE.CubeRefractionMapping;
+  scene.background = reflectionCube;
+
   scene.environment = pmremGenerator.fromScene(
     new RoomEnvironment(),
     0.04
@@ -65,57 +80,36 @@ const init = (callback) => {
 
   orbitControls = new OrbitControls(camera, renderer.domElement);
 
+  // controls.addEventListener( 'change', render ); remove animation loop
+
   loader.load(Mug, (gltf) => {
     const object = gltf.scene;
-    // const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    // pmremGenerator.compileEquirectangularShader();
-    // object.updateMatrixWorld();
-    // const boundingBox = new THREE.Box3().setFromObject(object);
-    // const modelSizeVec3 = new THREE.Vector3();
-    // boundingBox.getSize(modelSizeVec3);
-    // const modelSize = modelSizeVec3.length();
-    // const modelCenter = new THREE.Vector3();
-    // boundingBox.getCenter(modelCenter);
-
     const box = new THREE.Box3().setFromObject(object);
-    const size = box.getSize(new THREE.Vector3()).length();
+    const sz = box.getSize(new THREE.Vector3());
+    const size = sz.length();
+
     const center = box.getCenter(new THREE.Vector3());
 
-    object.position.x = 0;
-    object.position.y = 0;
-    object.position.z = 0;
+    object.position.x = center.x * -1;
+    object.position.z = center.z * -1;
+    object.position.y = sz.y / 2 - center.y;
 
-    object.position.x += object.position.x - center.x;
-    object.position.y += object.position.y - center.y;
-    object.position.z += object.position.z - center.z;
-
-    camera.near = size / 100;
-    camera.far = size * 100;
-    camera.updateProjectionMatrix();
+    orbitControls.maxDistance = size * 5;
+    orbitControls.minDistance = size / 2;
+    orbitControls.enableZoom = false;
+    orbitControls.enablePan = false;
+    orbitControls.minPolarAngle = Math.PI / 4;
+    orbitControls.maxPolarAngle = Math.PI / 2;
 
     camera.position.copy(center);
-    camera.position.x += size;
-    camera.position.y += size;
-    camera.position.z += size;
-    camera.lookAt(center);
+    camera.position.y += size / 2 + camera.position.y;
+    orbitControls.target = new THREE.Vector3(
+      center.x,
+     sz.y / 2,
+      center.z
+    );
 
-    // orbitControls.reset();
-    orbitControls.maxDistance = size * 50;
-    // orbitControls.enableDamping = true;
-    // orbitControls.dampingFactor = 0.07;
-    // orbitControls.rotateSpeed = 1.25;
-    // orbitControls.panSpeed = 1.25;
-    // orbitControls.screenSpacePanning = true;
-    // orbitControls.autoRotate = true;
-
-    // camera.position.copy(modelCenter);
-    // camera.position.x += modelSize * cameraPos.x;
-    // camera.position.y += modelSize * cameraPos.y;
-    // camera.position.z += modelSize * cameraPos.z;
-    // camera.near = modelSize / 100;
-    // camera.far = modelSize * 100;
-    // camera.updateProjectionMatrix();
-    // camera.lookAt(modelCenter);
+    camera.updateProjectionMatrix();
 
     object.traverse((obj) => {
       if (obj instanceof THREE.Mesh && obj.name === "Mug_Porcelain_PBR001_0") {
