@@ -12,6 +12,7 @@ const productViewer = {
   renderer: null,
   camera: null,
   scene: null,
+  lights: [],
   loadObject: async function (path) {
     return new Promise((a) => {
       const loader = new GLTFLoader();
@@ -19,16 +20,6 @@ const productViewer = {
         a(gltf);
       });
     });
-  },
-  addLights: function () {
-    const light1 = new THREE.AmbientLight(0xffffff, 0.3);
-    light1.name = "ambient_light";
-    this.scene.add(light1);
-
-    const light2 = new THREE.DirectionalLight(0xffffff, 0.8 * Math.PI);
-    light2.position.set(0.5, 0, 0.866);
-    light2.name = "main_light";
-    this.scene.add(light2);
   },
   setBackground: function () {
     const path =
@@ -55,7 +46,7 @@ const productViewer = {
 
     this.scene.add(this.camera);
 
-    this.addLights();
+
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -70,11 +61,6 @@ const productViewer = {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.7;
-    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmremGenerator.fromScene(
-      new RoomEnvironment(),
-      0.04
-    ).texture;
 
     this.setBackground();
 
@@ -93,6 +79,14 @@ const productViewer = {
     const sz = box.getSize(new THREE.Vector3());
     const size = sz.length();
     const center = box.getCenter(new THREE.Vector3());
+
+    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmremGenerator.fromScene(
+      new RoomEnvironment(),
+      0.04,
+      1
+    ).texture;
+
     this.model.position.x = center.x * -1;
     this.model.position.z = center.z * -1;
     this.model.position.y = sz.y / 2 - center.y;
