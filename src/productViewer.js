@@ -5,10 +5,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 var camera;
 var scene;
-var renderer;
-var orbitControls;
-var mesh;
-var material;
 
 const loader = new GLTFLoader();
 
@@ -17,6 +13,8 @@ const productViewer = {
   image: null,
   imageTexture: null,
   model: null,
+  orbitControls: null,
+  renderer: null,
   loadObject: async function (path) {
     return new Promise((a) => {
       loader.load(path, (gltf) => {
@@ -48,19 +46,22 @@ const productViewer = {
     light2.name = "main_light";
     scene.add(light2);
 
-    renderer = new THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       logarithmicDepthBuffer: true,
     });
 
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(this.container.clientWidth, this.container.clientHeight);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(
+      this.container.clientWidth,
+      this.container.clientHeight
+    );
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-    renderer.toneMappingExposure = 0.7;
+    this.renderer.toneMappingExposure = 0.7;
 
-    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
 
     const path =
       "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
@@ -82,61 +83,37 @@ const productViewer = {
       0.04
     ).texture;
 
-    this.container.appendChild(renderer.domElement);
+    this.container.appendChild(this.renderer.domElement);
 
-    orbitControls = new OrbitControls(camera, renderer.domElement);
+    this.orbitControls = new OrbitControls(camera, this.renderer.domElement);
 
-    orbitControls.addEventListener("change", () => {
-      renderer.render(scene, camera);
+    this.orbitControls.addEventListener("change", () => {
+      this.renderer.render(scene, camera);
     });
 
     this.model = (await this.loadObject(this.product)).scene;
     const box = new THREE.Box3().setFromObject(this.model);
     const sz = box.getSize(new THREE.Vector3());
     const size = sz.length();
-
     const center = box.getCenter(new THREE.Vector3());
-
     this.model.position.x = center.x * -1;
     this.model.position.z = center.z * -1;
     this.model.position.y = sz.y / 2 - center.y;
-
-    orbitControls.maxDistance = size * 5;
-    orbitControls.minDistance = size / 2;
-    orbitControls.enableZoom = false;
-    orbitControls.enablePan = false;
-    orbitControls.minPolarAngle = Math.PI / 4;
-    orbitControls.maxPolarAngle = Math.PI / 2;
-
+    this.orbitControls.maxDistance = size * 5;
+    this.orbitControls.minDistance = size / 2;
+    this.orbitControls.enableZoom = false;
+    this.orbitControls.enablePan = false;
+    this.orbitControls.minPolarAngle = Math.PI / 4;
+    this.orbitControls.maxPolarAngle = Math.PI / 2;
     camera.position.copy(center);
     camera.position.y += size / 2 + camera.position.y;
-    orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
-
+    this.orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
     camera.updateProjectionMatrix();
-
-    this.imageTexture = await this.convertImageToTexture(this.image);
-    this.model.traverse((obj) => {
-      if (obj instanceof THREE.Mesh && obj.name === "Mug_Porcelain_PBR001_0") {
-        material = obj.material;
-        mesh = obj;
-
-        material.map = this.imageTexture;
-      } else if (
-        obj instanceof THREE.Mesh &&
-        obj.name === "Mug_Porcelain_PBR002_0"
-      ) {
-        const material = obj.material;
-        material.color.set("#ffffff");
-
-        obj.material.depthWrite = !obj.material.transparent;
-      }
-    });
-
+    await this.setImage(this.image);
     scene.add(this.model);
-
     this.onWindowResize();
-    orbitControls.update();
-    renderer.render(scene, camera);
+    this.orbitControls.update();
+    this.renderer.render(scene, camera);
     window.addEventListener("resize", () => {
       this.onWindowResize();
     });
@@ -145,18 +122,17 @@ const productViewer = {
     camera.aspect = this.container.clientWidth / this.container.clientHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+    this.renderer.setSize(
+      this.container.clientWidth,
+      this.container.clientHeight
+    );
   },
   convertImageToTexture: function (image) {
     return new Promise((a) => {
       let texture = null;
-
-      var onLoad = function () {
+      const manager = new THREE.LoadingManager(() => {
         a(texture);
-      };
-
-      var manager = new THREE.LoadingManager(onLoad);
-
+      });
       const textureLoader = new THREE.TextureLoader(manager);
       texture = textureLoader.load(image);
       texture.encoding = THREE.sRGBEncoding;
@@ -171,7 +147,7 @@ const productViewer = {
       if (obj instanceof THREE.Mesh && obj.name === "Mug_Porcelain_PBR001_0")
         obj.material.map = this.imageTexture;
     });
-    renderer.render(scene, camera);
+    this.renderer.render(scene, camera);
   },
 };
 
