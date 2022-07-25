@@ -10,6 +10,6 @@
   },
   "scripts": {
     "start": "vite --config vite.config.js",
-    "build": "vite build --config vite.config.js"
+    "build": "vite build --config vite.config.js --emptyOutDir"
   }
 }
