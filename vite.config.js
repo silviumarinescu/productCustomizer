@@ -2,8 +2,9 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     root: 'src',
+    publicDir:"assets",
     build: {
-      outDir: '../docs'
+      outDir: '../docs',
     },
     base: "/productCustomizer/"
   })
