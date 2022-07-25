@@ -20,21 +20,7 @@ const productViewer = {
       });
     });
   },
-  init: async function ({ container, image, product }) {
-    this.container = container;
-    this.image = image;
-    this.product = product;
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(
-      50,
-      this.container.clientWidth / this.container.clientHeight,
-      1,
-      5000
-    );
-    this.camera.position.z = 2000;
-
-    this.scene.add(this.camera);
-
+  addLights: function () {
     const light1 = new THREE.AmbientLight(0xffffff, 0.3);
     light1.name = "ambient_light";
     this.scene.add(light1);
@@ -43,24 +29,8 @@ const productViewer = {
     light2.position.set(0.5, 0, 0.866);
     light2.name = "main_light";
     this.scene.add(light2);
-
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      logarithmicDepthBuffer: true,
-    });
-
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(
-      this.container.clientWidth,
-      this.container.clientHeight
-    );
-    this.renderer.outputEncoding = THREE.sRGBEncoding;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-
-    this.renderer.toneMappingExposure = 0.7;
-
-    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-
+  },
+  setBackground: function () {
     const path =
       "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
     const format = ".jpg";
@@ -75,11 +45,38 @@ const productViewer = {
     const reflectionCube = new THREE.CubeTextureLoader().load(urls);
     reflectionCube.mapping = THREE.CubeRefractionMapping;
     this.scene.background = reflectionCube;
+  },
+  init: async function ({ container, image, product }) {
+    this.container = container;
+    this.image = image;
+    this.product = product;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera();
 
+    this.scene.add(this.camera);
+
+    this.addLights();
+
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      logarithmicDepthBuffer: true,
+    });
+
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(
+      this.container.clientWidth,
+      this.container.clientHeight
+    );
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 0.7;
+    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmremGenerator.fromScene(
       new RoomEnvironment(),
       0.04
     ).texture;
+
+    this.setBackground();
 
     this.container.appendChild(this.renderer.domElement);
 
@@ -87,7 +84,6 @@ const productViewer = {
       this.camera,
       this.renderer.domElement
     );
-
     this.orbitControls.addEventListener("change", () => {
       this.renderer.render(this.scene, this.camera);
     });
@@ -123,11 +119,11 @@ const productViewer = {
     this.camera.aspect =
       this.container.clientWidth / this.container.clientHeight;
     this.camera.updateProjectionMatrix();
-
     this.renderer.setSize(
       this.container.clientWidth,
       this.container.clientHeight
     );
+    this.renderer.render(this.scene, this.camera);
   },
   convertImageToTexture: function (image) {
     return new Promise((a) => {
