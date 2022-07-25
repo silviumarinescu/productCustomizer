@@ -9,7 +9,7 @@
     "vite": "^3.0.2"
   },
   "scripts": {
-    "start": "vite src --host",
-    "build": "vite build src"
+    "start": "vite --config vite.config.js",
+    "build": "vite build --config vite.config.js"
   }
 }
