@@ -22,20 +22,21 @@ const productViewer = {
     });
   },
   setBackground: function () {
-    const path =
-      "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
-    const format = ".jpg";
-    const urls = [
-      path + "px" + format,
-      path + "nx" + format,
-      path + "py" + format,
-      path + "ny" + format,
-      path + "pz" + format,
-      path + "nz" + format,
-    ];
-    const reflectionCube = new THREE.CubeTextureLoader().load(urls);
-    reflectionCube.mapping = THREE.CubeRefractionMapping;
-    this.scene.background = reflectionCube;
+    // const path =
+    //   "https://threejs.org/examples/textures/cube/SwedishRoyalCastle/";
+    // const format = ".jpg";
+    // const urls = [
+    //   path + "px" + format,
+    //   path + "nx" + format,
+    //   path + "py" + format,
+    //   path + "ny" + format,
+    //   path + "pz" + format,
+    //   path + "nz" + format,
+    // ];
+    // const reflectionCube = new THREE.CubeTextureLoader().load(urls);
+    // reflectionCube.mapping = THREE.CubeRefractionMapping;
+    // this.scene.background = reflectionCube;
+    this.scene.background = new THREE.Color("#367588")
   },
   init: async function ({ container, image, product }) {
     this.container = container;
