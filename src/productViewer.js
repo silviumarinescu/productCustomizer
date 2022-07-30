@@ -36,18 +36,15 @@ const productViewer = {
     // const reflectionCube = new THREE.CubeTextureLoader().load(urls);
     // reflectionCube.mapping = THREE.CubeRefractionMapping;
     // this.scene.background = reflectionCube;
-    this.scene.background = new THREE.Color("#367588")
+    this.scene.background = new THREE.Color("#367588");
   },
   init: async function ({ container, image, product }) {
     this.container = container;
     this.image = image;
-    this.product = product;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera();
 
     this.scene.add(this.camera);
-
-
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -75,37 +72,8 @@ const productViewer = {
       this.renderer.render(this.scene, this.camera);
     });
 
-    this.model = (await this.loadObject(this.product)).scene;
-    const box = new THREE.Box3().setFromObject(this.model);
-    const sz = box.getSize(new THREE.Vector3());
-    const size = sz.length();
-    const center = box.getCenter(new THREE.Vector3());
+    await this.setModel(product);
 
-    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmremGenerator.fromScene(
-      new RoomEnvironment(),
-      0.04,
-      1
-    ).texture;
-
-    this.model.position.x = center.x * -1;
-    this.model.position.z = center.z * -1;
-    this.model.position.y = sz.y / 2 - center.y;
-    this.orbitControls.maxDistance = size * 5;
-    this.orbitControls.minDistance = size / 2;
-    this.orbitControls.enableZoom = false;
-    this.orbitControls.enablePan = false;
-    this.orbitControls.minPolarAngle = Math.PI / 4;
-    this.orbitControls.maxPolarAngle = Math.PI / 2;
-    this.camera.position.copy(center);
-    this.camera.position.y += size / 2 + this.camera.position.y;
-    this.orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
-    this.camera.updateProjectionMatrix();
-    await this.setImage(this.image);
-    this.scene.add(this.model);
-    this.onWindowResize();
-    this.orbitControls.update();
-    this.renderer.render(this.scene, this.camera);
     window.addEventListener("resize", () => {
       this.onWindowResize();
     });
@@ -129,8 +97,42 @@ const productViewer = {
       const textureLoader = new THREE.TextureLoader(manager);
       texture = textureLoader.load(image);
       texture.encoding = THREE.sRGBEncoding;
-      texture.flipY = false;
+      texture.flipY = true;
     });
+  },
+  setModel: async function (model) {
+    if (this.model) this.scene.remove(this.model);
+    this.model = (await this.loadObject(model)).scene;
+    const box = new THREE.Box3().setFromObject(this.model);
+    const sz = box.getSize(new THREE.Vector3());
+    const size = sz.length();
+    const center = box.getCenter(new THREE.Vector3());
+
+    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmremGenerator.fromScene(
+      new RoomEnvironment(),
+      0.04,
+      1
+    ).texture;
+
+    this.model.position.x = center.x * -1;
+    this.model.position.z = center.z * -1;
+    this.model.position.y = sz.y / 2 - center.y;
+    this.orbitControls.maxDistance = size * 2;
+    this.orbitControls.minDistance = size / 2;
+    // this.orbitControls.enableZoom = false;
+    this.orbitControls.enablePan = false;
+    this.orbitControls.minPolarAngle = Math.PI / 4;
+    this.orbitControls.maxPolarAngle = Math.PI / 2;
+    this.camera.position.copy(center);
+    this.camera.position.y += size / 2 + this.camera.position.y;
+    this.orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
+    this.camera.updateProjectionMatrix();
+    await this.setImage(this.image);
+    this.scene.add(this.model);
+    this.onWindowResize();
+    this.orbitControls.update();
+    this.renderer.render(this.scene, this.camera);
   },
   setImage: async function (image) {
     this.image = image;
