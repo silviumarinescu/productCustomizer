@@ -125,7 +125,7 @@ const productViewer = {
     this.orbitControls.minPolarAngle = Math.PI / 4;
     this.orbitControls.maxPolarAngle = Math.PI / 2;
     this.camera.position.copy(center);
-    this.camera.position.y += size / 2 + this.camera.position.y;
+    this.camera.position.y += size  + this.camera.position.y;
     this.orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
     this.camera.updateProjectionMatrix();
     await this.setImage(this.image);
@@ -138,7 +138,7 @@ const productViewer = {
     this.image = image;
     this.imageTexture = await this.convertImageToTexture(this.image);
     this.model.traverse((obj) => {
-      if (obj instanceof THREE.Mesh && obj.name === "Mug_Porcelain_PBR001_0")
+      if (obj instanceof THREE.Mesh && obj.name === "art_surface")
         obj.material.map = this.imageTexture;
     });
     this.renderer.render(this.scene, this.camera);

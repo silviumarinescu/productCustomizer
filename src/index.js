@@ -32,3 +32,13 @@ document
 
     await productViewer.setImage(file);
   });
+
+
+
+  document
+  .querySelector("#custom-model")
+  .addEventListener("change", async (e) => {
+    const file = await getFile(e.target.files[0]);
+
+    await productViewer.setModel(file);
+  });
