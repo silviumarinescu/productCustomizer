@@ -21,83 +21,7 @@ const productViewer = {
       });
     });
   },
-  foregrownd: null,
-  setForegrownd: async function () {
-    if (!this.foregrownd) {
-      let texture = await this.convertImageToTexture("/fg.png");
-      let material = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-      });
-      let plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-      this.foregrownd = plane;
-      this.scene.add(this.foregrownd);
-    }
 
-    //   const box = new THREE.Box3().setFromObject(this.model);
-    // const sz = box.getSize(new THREE.Vector3());
-    // const size = sz.length();
-    // const center = box.getCenter(new THREE.Vector3());
-    console.log(this.camera.position)
-    if (this.size) {
-      this.foregrownd.rotation.x = this.camera.rotation.x;
-      this.foregrownd.rotation.y = this.camera.rotation.y;
-      this.foregrownd.rotation.z = this.camera.rotation.z;
-
-      this.foregrownd.position.x = this.camera.position.x;
-      this.foregrownd.position.y = this.camera.position.y;
-      this.foregrownd.position.z = this.size;
-    }
-  },
-  hasBg: false,
-  setBackground: async function () {
-    var windowSize = function (withScrollBar) {
-      var wid = 0;
-      var hei = 0;
-      if (typeof window.innerWidth != "undefined") {
-        wid = window.innerWidth;
-        hei = window.innerHeight;
-      } else {
-        if (document.documentElement.clientWidth == 0) {
-          wid = document.body.clientWidth;
-          hei = document.body.clientHeight;
-        } else {
-          wid = document.documentElement.clientWidth;
-          hei = document.documentElement.clientHeight;
-        }
-      }
-      return {
-        width: wid - (withScrollBar ? wid - document.body.offsetWidth + 1 : 0),
-        height: hei,
-      };
-    };
-
-    this.scene.background = await this.convertImageToTexture("/bg.jpg");
-    let backgroundImageWidth = 1920;
-    let backgroundImageHeight = 1200;
-    var size = windowSize(true);
-    var factor =
-      backgroundImageWidth / backgroundImageHeight / (size.width / size.height);
-
-    this.scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
-    this.scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
-
-    this.scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
-    this.scene.background.repeat.y = factor > 1 ? 1 : factor;
-
-    if (this.scene.background) {
-      var size = windowSize(true);
-      var factor =
-        backgroundImageWidth /
-        backgroundImageHeight /
-        (size.width / size.height);
-      this.scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
-      this.scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
-      this.scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
-      this.scene.background.repeat.y = factor > 1 ? 1 : factor;
-    }
-    if (!this.hasBg) this.hasBg = true;
-  },
   init: async function ({ container, image, product }) {
     this.container = container;
     this.image = image;
@@ -107,6 +31,7 @@ const productViewer = {
     this.scene.add(this.camera);
 
     this.renderer = new THREE.WebGLRenderer({
+      alpha: true,
       antialias: true,
       logarithmicDepthBuffer: true,
     });
@@ -120,9 +45,6 @@ const productViewer = {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.7;
 
-    await this.setBackground();
-    await this.setForegrownd();
-
     this.container.appendChild(this.renderer.domElement);
 
     this.orbitControls = new OrbitControls(
@@ -130,7 +52,6 @@ const productViewer = {
       this.renderer.domElement
     );
     this.orbitControls.addEventListener("change", async () => {
-      await this.setForegrownd();
       this.renderer.render(this.scene, this.camera);
     });
 
@@ -148,7 +69,6 @@ const productViewer = {
       this.container.clientWidth,
       this.container.clientHeight
     );
-    if (this.hasBg) await this.setBackground();
     this.renderer.render(this.scene, this.camera);
   },
   convertImageToTexture: function (image) {
@@ -164,13 +84,14 @@ const productViewer = {
     });
   },
   size: null,
+  center: null,
   setModel: async function (model) {
     if (this.model) this.scene.remove(this.model);
     this.model = (await this.loadObject(model)).scene;
     const box = new THREE.Box3().setFromObject(this.model);
     const sz = box.getSize(new THREE.Vector3());
     this.size = sz.length();
-    const center = box.getCenter(new THREE.Vector3());
+    this.center = box.getCenter(new THREE.Vector3());
 
     const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmremGenerator.fromScene(
@@ -179,18 +100,22 @@ const productViewer = {
       1
     ).texture;
 
-    this.model.position.x = center.x * -1;
-    this.model.position.z = center.z * -1;
-    this.model.position.y = sz.y / 2 - center.y;
+    this.model.position.x = this.center.x * -1;
+    this.model.position.z = this.center.z * -1;
+    this.model.position.y = sz.y / 2 - this.center.y;
     this.orbitControls.maxDistance = this.size * 2;
     this.orbitControls.minDistance = this.size;
-    // this.orbitControls.enableZoom = false;
+    this.orbitControls.enableZoom = false;
     this.orbitControls.enablePan = false;
     this.orbitControls.minPolarAngle = Math.PI / 4;
     this.orbitControls.maxPolarAngle = Math.PI / 2;
-    this.camera.position.copy(center);
+    this.camera.position.copy(this.center);
     this.camera.position.y += this.size + this.camera.position.y;
-    this.orbitControls.target = new THREE.Vector3(center.x, sz.y / 2, center.z);
+    this.orbitControls.target = new THREE.Vector3(
+      this.center.x,
+      sz.y / 2,
+      this.center.z
+    );
     this.camera.updateProjectionMatrix();
     await this.setImage(this.image);
     this.scene.add(this.model);
@@ -206,6 +131,15 @@ const productViewer = {
         obj.material.map = this.imageTexture;
     });
     this.renderer.render(this.scene, this.camera);
+  },
+  async getImage() {
+    const width = 300;
+    const height = 300;
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+    this.renderer.render(this.scene, this.camera, null, false);
+    return this.renderer.domElement.toDataURL("image/png");
   },
 };
 
