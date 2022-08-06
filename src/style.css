@@ -51,8 +51,8 @@ img{
 
 .result{
     display: inline-block;
-    height: 300px;
-    width: 300px;
+    height: 1000px;
+    width: 1000px;
     overflow: hidden;
     border: 1px solid red;
 }
@@ -60,6 +60,5 @@ img{
 .controls {
     box-sizing: border-box;
     padding: 10px;
-    height: 100px;
     width: 100%;
 }

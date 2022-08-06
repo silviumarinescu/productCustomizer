@@ -5,7 +5,20 @@ const container = document.querySelector(".container");
 const image = `model1_img0.jpg`;
 const product = `model1.gltf`;
 
-productViewer.init({ container, image, product });
+productViewer.init({
+  container,
+  image,
+  product,
+  cameraUpdate: (
+    positionX,
+    positionY,
+    positionZ,
+  ) => {
+    document.querySelector("#positionX").value = positionX;
+    document.querySelector("#positionY").value = positionY;
+    document.querySelector("#positionZ").value = positionZ;
+  },
+});
 
 document.querySelector("#image").addEventListener("change", async (e) => {
   await productViewer.setImage(`model${e.target.value}_img0.jpg`);
@@ -51,28 +64,20 @@ document
     await productViewer.setModel(file);
   });
 
-const getOffsets = () => {
+const getCamera = () => {
   return [
-    parseFloat(document.querySelector("#offsetX").value),
-    parseFloat(document.querySelector("#offsetY").value),
-    parseFloat(document.querySelector("#offsetZ").value),
+    parseFloat(document.querySelector("#positionX").value),
+    parseFloat(document.querySelector("#positionY").value),
+    parseFloat(document.querySelector("#positionZ").value),
+    parseFloat(document.querySelector("#rotationX").value),
+    parseFloat(document.querySelector("#rotationY").value),
+    parseFloat(document.querySelector("#rotationZ").value),
   ];
 };
 
-document.querySelector("#offsetX").addEventListener("change", async (e) => {
-  await productViewer.setCamera(...getOffsets());
-});
-document.querySelector("#offsetY").addEventListener("change", async (e) => {
-  await productViewer.setCamera(...getOffsets());
-});
-
-document.querySelector("#offsetZ").addEventListener("change", async (e) => {
-  await productViewer.setCamera(...getOffsets());
-});
-
-document.querySelector(".save").addEventListener("click", async () => {
-  const width = 2000;
-  const height = 2000;
+const renderFinalImage = async () => {
+  const width = 1000;
+  const height = 1000;
   const image = await productViewer.getImage(width, height);
 
   await overlayImages(
@@ -84,6 +89,38 @@ document.querySelector(".save").addEventListener("click", async () => {
     width,
     height
   );
+};
+
+document.querySelector("#positionX").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+document.querySelector("#positionY").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+
+document.querySelector("#positionZ").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+
+document.querySelector("#rotationX").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+document.querySelector("#rotationY").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+
+document.querySelector("#rotationZ").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getCamera());
+  await renderFinalImage();
+});
+
+document.querySelector(".save").addEventListener("click", async () => {
+  await renderFinalImage();
 });
 
 const genImage = (image) =>
