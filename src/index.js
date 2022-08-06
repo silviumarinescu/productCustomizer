@@ -33,6 +33,22 @@ document
     await productViewer.setImage(file);
   });
 
+  document
+  .querySelector("#bg-image")
+  .addEventListener("change", async (e) => {
+    const file = await getFile(e.target.files[0]);
+    document.querySelector(".bg").setAttribute("src",file)
+  });
+
+  document
+  .querySelector("#fg-image")
+  .addEventListener("change", async (e) => {
+    const file = await getFile(e.target.files[0]);
+    document.querySelector(".fg").setAttribute("src",file)
+  });
+  
+
+
 document
   .querySelector("#custom-model")
   .addEventListener("change", async (e) => {
@@ -42,13 +58,19 @@ document
   });
 
 document.querySelector(".save").addEventListener("click", async () => {
-  const image = await productViewer.getImage();
+  const width = 2000;
+  const height = 2000;
+  const image = await productViewer.getImage(width, height);
 
-  await overlayImages([
-    document.querySelector(".bg").getAttribute("src"),
-    image,
-    document.querySelector(".fg").getAttribute("src"),
-  ]);
+  await overlayImages(
+    [
+      document.querySelector(".bg").getAttribute("src"),
+      image,
+      document.querySelector(".fg").getAttribute("src"),
+    ],
+    width,
+    height
+  );
 });
 
 const genImage = (image) =>
@@ -73,6 +95,6 @@ const overlayImages = async (
 
   for (const image of images) {
     const img = await genImage(image);
-    ctx.drawImage(img, 0, 0, 300, 300, 0, 0, 300, 300);
+    ctx.drawImage(img, width / 2 - width / 2, 0, width, height);
   }
 };

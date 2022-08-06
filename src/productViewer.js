@@ -132,14 +132,16 @@ const productViewer = {
     });
     this.renderer.render(this.scene, this.camera);
   },
-  async getImage() {
-    const width = 300;
-    const height = 300;
+  async getImage(width=300, height=300) {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
     this.renderer.render(this.scene, this.camera, null, false);
-    return this.renderer.domElement.toDataURL("image/png");
+    const img = this.renderer.domElement.toDataURL("image/png");
+
+    await this.onWindowResize();
+
+    return img;
   },
 };
 
