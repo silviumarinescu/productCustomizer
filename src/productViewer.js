@@ -57,7 +57,6 @@ const productViewer = {
         this.camera.position.y,
         this.camera.position.z,
       );
-      console.log(this.model.position.x);
       this.renderer.render(this.scene, this.camera);
     });
 
