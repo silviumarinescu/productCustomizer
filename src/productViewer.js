@@ -47,13 +47,13 @@ const productViewer = {
 
     this.container.appendChild(this.renderer.domElement);
 
-    this.orbitControls = new OrbitControls(
-      this.camera,
-      this.renderer.domElement
-    );
-    this.orbitControls.addEventListener("change", async () => {
-      this.renderer.render(this.scene, this.camera);
-    });
+    // this.orbitControls = new OrbitControls(
+    //   this.camera,
+    //   this.renderer.domElement
+    // );
+    // this.orbitControls.addEventListener("change", async () => {
+    //   this.renderer.render(this.scene, this.camera);
+    // });
 
     await this.setModel(product);
 
@@ -84,13 +84,40 @@ const productViewer = {
     });
   },
   size: null,
+  sz:null,
   center: null,
+  setCamera: async function( offsetX=0, offsetY=0, offsetZ=0){
+    this.model.position.x = this.center.x * -1;
+    this.model.position.z = this.center.z * -1;
+    this.model.position.y = this.sz.y / 2 - this.center.y;
+    // this.orbitControls.maxDistance = this.size * 2;
+    // this.orbitControls.minDistance = this.size;
+    // this.orbitControls.enableZoom = false;
+    // this.orbitControls.enablePan = false;
+    // this.orbitControls.minPolarAngle = Math.PI / 8;
+    // this.orbitControls.maxPolarAngle = Math.PI / 2;
+    // this.camera.position.copy(this.center);
+    // this.camera.position.y += this.size + this.camera.position.y;
+    // this.orbitControls.target = new THREE.Vector3(
+    //   offsetX,
+    //   offsetY,
+    //   offsetZ
+    // );
+
+    this.camera.position.x = offsetX;
+    this.camera.position.y = offsetY;
+    this.camera.position.z = offsetZ;
+
+    this.camera.updateProjectionMatrix();
+    // this.orbitControls.update();
+    this.renderer.render(this.scene, this.camera);
+  },
   setModel: async function (model) {
     if (this.model) this.scene.remove(this.model);
     this.model = (await this.loadObject(model)).scene;
     const box = new THREE.Box3().setFromObject(this.model);
-    const sz = box.getSize(new THREE.Vector3());
-    this.size = sz.length();
+    this.sz = box.getSize(new THREE.Vector3());
+    this.size = this.sz.length();
     this.center = box.getCenter(new THREE.Vector3());
 
     const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
@@ -100,27 +127,11 @@ const productViewer = {
       1
     ).texture;
 
-    this.model.position.x = this.center.x * -1;
-    this.model.position.z = this.center.z * -1;
-    this.model.position.y = sz.y / 2 - this.center.y;
-    this.orbitControls.maxDistance = this.size * 2;
-    this.orbitControls.minDistance = this.size;
-    this.orbitControls.enableZoom = false;
-    this.orbitControls.enablePan = false;
-    this.orbitControls.minPolarAngle = Math.PI / 4;
-    this.orbitControls.maxPolarAngle = Math.PI / 2;
-    this.camera.position.copy(this.center);
-    this.camera.position.y += this.size + this.camera.position.y;
-    this.orbitControls.target = new THREE.Vector3(
-      this.center.x,
-      sz.y / 2,
-      this.center.z
-    );
-    this.camera.updateProjectionMatrix();
+    await this.setCamera();
     await this.setImage(this.image);
     this.scene.add(this.model);
     await this.onWindowResize();
-    this.orbitControls.update();
+    // this.orbitControls.update();
     this.renderer.render(this.scene, this.camera);
   },
   setImage: async function (image) {

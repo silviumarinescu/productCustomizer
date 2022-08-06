@@ -33,21 +33,15 @@ document
     await productViewer.setImage(file);
   });
 
-  document
-  .querySelector("#bg-image")
-  .addEventListener("change", async (e) => {
-    const file = await getFile(e.target.files[0]);
-    document.querySelector(".bg").setAttribute("src",file)
-  });
+document.querySelector("#bg-image").addEventListener("change", async (e) => {
+  const file = await getFile(e.target.files[0]);
+  document.querySelector(".bg").setAttribute("src", file);
+});
 
-  document
-  .querySelector("#fg-image")
-  .addEventListener("change", async (e) => {
-    const file = await getFile(e.target.files[0]);
-    document.querySelector(".fg").setAttribute("src",file)
-  });
-  
-
+document.querySelector("#fg-image").addEventListener("change", async (e) => {
+  const file = await getFile(e.target.files[0]);
+  document.querySelector(".fg").setAttribute("src", file);
+});
 
 document
   .querySelector("#custom-model")
@@ -56,6 +50,25 @@ document
 
     await productViewer.setModel(file);
   });
+
+const getOffsets = () => {
+  return [
+    parseFloat(document.querySelector("#offsetX").value),
+    parseFloat(document.querySelector("#offsetY").value),
+    parseFloat(document.querySelector("#offsetZ").value),
+  ];
+};
+
+document.querySelector("#offsetX").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getOffsets());
+});
+document.querySelector("#offsetY").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getOffsets());
+});
+
+document.querySelector("#offsetZ").addEventListener("change", async (e) => {
+  await productViewer.setCamera(...getOffsets());
+});
 
 document.querySelector(".save").addEventListener("click", async () => {
   const width = 2000;
