@@ -3,7 +3,7 @@ import productViewer from "./productViewer";
 const container = document.querySelector(".container");
 
 const image = `model1_img0.jpg`;
-const product = `model1.gltf`;
+const product = `main_model.gltf`;
 
 productViewer.init({ container, image, product });
 
